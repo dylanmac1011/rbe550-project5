@@ -51,7 +51,7 @@ franka.set_dofs_force_range(
 #     franka.control_dofs_position(waypoint)
 #     scene.step()
 
-motion.pick_up("r")
 motion.stack("r", "g")
-motion.pick_up("b")
 motion.stack("b", "r")
+motion.unstack("b")
+motion.stack("y","r")

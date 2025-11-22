@@ -1,4 +1,5 @@
 import numpy as np
+import random
 import genesis as gs
 #import planning as planner
 import torch
@@ -48,9 +49,9 @@ class MotionPrimitives:
         #Calculate pre-grasp pose just above block
         pre_grasp_pos = block_pos
         if stacking:
-            z_adjust = 0.25
+            z_adjust = 0.2
         else:
-            z_adjust = 0.21
+            z_adjust = 0.16
         pre_grasp_pos[2] += z_adjust
         pre_grasp_yaw = block_yaw + np.pi #Z axis rotated 180 degrees
         pre_grasp_R = R.from_euler('xyz', [block_roll, block_pitch, pre_grasp_yaw])
@@ -65,7 +66,7 @@ class MotionPrimitives:
         self.robot.control_dofs_force(np.array([-1, -1]), self.fingers_dof)
         for i in range(100):
             self.scene.step()
-            
+
     def ungrasp(self, qpos):
         qpos[-2:] = 0.04
         self.robot.control_dofs_position(qpos, np.arange(9))
@@ -93,7 +94,7 @@ class MotionPrimitives:
         
         #IK for grasp pose
         grasp_pos = pre_grasp_pos
-        grasp_pos[2] -= 0.1
+        grasp_pos[2] -= 0.05
         grasp_qpos = self.robot.inverse_kinematics(
         link=self.robot.get_link("hand"),
         pos=grasp_pos,
@@ -108,13 +109,30 @@ class MotionPrimitives:
         #self.planner.attached_object = block
         self.moveTo(pregrasp_qpos, gripper=False)
 
-    def put_down(self, block):
-        block_pos = block.get_pos()
-        block_quat = block.get_quat()
+    def put_down(self, block_str):
+        x_pos = random.uniform(0.0,1.0)
+        y_pos = random.uniform(0.0,1.0)
+        z_pos = 0.11
+        #Check if state is valid once OMPL works
+        pos = np.array([x_pos,y_pos,z_pos])
+        quat = np.array([0,0,0,0])
+        qpos = self.robot.inverse_kinematics(
+        link=self.robot.get_link("hand"),
+        pos=pos)
+        path = self.robot.plan_path(
+        qpos_goal=qpos,
+        num_waypoints=400)  # 4s duration
+
+        #Follow path to random state
+        for waypoint in path:
+            self.moveStep(waypoint, gripper=False)
+        for i in range(100): #allow some time for robot to move to final position
+            self.scene.step()
+        self.ungrasp(qpos)
 
     #Stacks blockA on blockB, assumes blockA in hand
     def stack(self, blockA_str,blockB_str):
-
+        self.pick_up(blockA_str)
         blockA = self.blocks[blockA_str]
         blockB = self.blocks[blockB_str]
         prestack_qpos, pre_stack_pos, pre_stack_quat = self.calcPreGraspPose(blockB, stacking=True)
@@ -131,7 +149,7 @@ class MotionPrimitives:
             self.scene.step()
 
         stack_pos = pre_stack_pos
-        stack_pos[2] -= 0.1
+        stack_pos[2] -= 0.05
         stack_qpos = self.robot.inverse_kinematics(
         link=self.robot.get_link("hand"),
         pos=stack_pos,
@@ -146,4 +164,6 @@ class MotionPrimitives:
         quat=pre_stack_quat,)
         self.moveTo(stack_qpos)
         
-    #def unstack(x,y):
+    def unstack(self, block_str):
+        self.pick_up(block_str)
+        self.put_down(block_str)
