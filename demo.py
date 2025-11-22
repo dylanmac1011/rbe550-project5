@@ -2,6 +2,8 @@ import sys
 import numpy as np
 import genesis as gs
 from scenes import create_scene_6blocks, create_scene_stacked
+import planning as plan
+import motion_primitives as motionp
 
 # Ensure Genesis is initialized before building scenes
 if len(sys.argv) > 1 and sys.argv[1] == "gpu":
@@ -11,6 +13,8 @@ else:
 
 # build the scene using the factory
 scene, franka, BlocksState = create_scene_6blocks()
+#planner = plan.PlannerInterface(franka, scene)
+motion = motionp.MotionPrimitives(franka, scene, BlocksState)
 #scene, franka, BlocksState = create_scene_stacked()
 
 # set control gains
@@ -29,19 +33,25 @@ franka.set_dofs_force_range(
     np.array([87, 87, 87, 87, 12, 12, 12, 100, 100]),
 )
 
-# move to a fixed pre-grasp pose
-qpos = franka.inverse_kinematics(
-    link=franka.get_link("hand"),
-    pos=np.array([0.65, 0.0, 0.25]),
-    quat=np.array([0, 1, 0, 0]),
-)
-# gripper open pos
-qpos[-2:] = 0.04
-path = franka.plan_path(
-    qpos_goal=qpos,
-    num_waypoints=200,  # 2s duration
-)
-# execute the planned path
-for waypoint in path:
-    franka.control_dofs_position(waypoint)
-    scene.step()
+# # move to a fixed pre-grasp pose
+# qpos = franka.inverse_kinematics(
+#     link=franka.get_link("hand"),
+#     pos=np.array([0.65, 0.0, 0.25]),
+#     quat=np.array([0, 1, 0, 0])
+# )
+
+# # gripper open pos
+# qpos[-2:] = 0.04
+# path = franka.plan_path(
+#     qpos_goal=qpos,
+#     num_waypoints=200,  # 2s duration
+# )
+# # execute the planned path
+# for waypoint in path:
+#     franka.control_dofs_position(waypoint)
+#     scene.step()
+
+motion.pick_up("r")
+motion.stack("r", "g")
+motion.pick_up("b")
+motion.stack("b", "r")
