@@ -84,7 +84,7 @@ class MotionPrimitives:
         #Path plan for pre-grasp
         path = self.robot.plan_path(
         qpos_goal=pregrasp_qpos,
-        num_waypoints=200)  # 2s duration
+        num_waypoints=150)  # 2s duration
 
         #Follow path to pre-grasp state
         for waypoint in path:
@@ -140,7 +140,7 @@ class MotionPrimitives:
         #Path plan for pre-grasp
         path = self.robot.plan_path(
         qpos_goal=prestack_qpos,
-        num_waypoints=400)  # 2s duration
+        num_waypoints=150)  # 2s duration
 
         #Follow path to pre-grasp state
         for waypoint in path:

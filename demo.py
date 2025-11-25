@@ -53,5 +53,11 @@ franka.set_dofs_force_range(
 
 motion.stack("r", "g")
 motion.stack("b", "r")
-motion.unstack("b")
-motion.stack("y","r")
+motion.stack("y", "b")
+motion.stack("m", "y")
+motion.stack("c", "m")
+motion.stack("d", "c")
+
+
+#motion.unstack("b")
+#motion.stack("y","r")
