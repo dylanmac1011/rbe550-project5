@@ -57,6 +57,7 @@ def create_scene_6blocks() -> Tuple[Any, Any, Dict[str, Any], Any]:
     posY = _rand_xy((0.45, 0.0, 0.02))
     posM = _rand_xy((0.45, 0.2, 0.02))
     posC = _rand_xy((0.45, 0.4, 0.02))
+    posD = _rand_xy((0.45, 0.6, 0.02))
 
     cubeR = scene.add_entity(
         gs.morphs.Box(size=(0.04, 0.04, 0.04), pos= posR),
@@ -83,6 +84,10 @@ def create_scene_6blocks() -> Tuple[Any, Any, Dict[str, Any], Any]:
         gs.morphs.Box(size=(0.04, 0.04, 0.04), pos=posC),
         surface=gs.options.surfaces.Plastic(color=(0, 1.0, 1.0)),
     )
+    cubeD = scene.add_entity(
+        gs.morphs.Box(size=(0.04, 0.04, 0.04), pos=posD),
+        surface=gs.options.surfaces.Plastic(color=(0.5, 1.0, 1.0)),
+    )
 
     franka_raw = scene.add_entity(gs.morphs.MJCF(file="xml/franka_emika_panda/panda.xml"))
     franka = RobotAdapter(franka_raw, scene)
@@ -96,7 +101,7 @@ def create_scene_6blocks() -> Tuple[Any, Any, Dict[str, Any], Any]:
     # slightly raise robot base to avoid initial collisions
     _elevate_robot_base(franka)
 
-    blocks_state: Dict[str, Any] = {"r": cubeR, "g": cubeG, "b": cubeB, "y": cubeY, "m": cubeM, "c": cubeC}
+    blocks_state: Dict[str, Any] = {"r": cubeR, "g": cubeG, "b": cubeB, "y": cubeY, "m": cubeM, "c": cubeC, "d": cubeD}
 
     return scene, franka, blocks_state
 
@@ -135,6 +140,7 @@ def create_scene_stacked() -> Tuple[Any, Any, Dict[str, Any], Any]:
         gs.morphs.Box(size=(0.04, 0.04, 0.04), pos=(startx, starty, 0.22)),
         surface=gs.options.surfaces.Plastic(color=(0, 1.0, 1.0)),
     )
+    
 
     franka_raw = scene.add_entity(gs.morphs.MJCF(file="xml/franka_emika_panda/panda.xml"))
     franka = RobotAdapter(franka_raw, scene)

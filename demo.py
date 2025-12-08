@@ -8,6 +8,8 @@ import subprocess
 from pathlib import Path
 
 
+import planning as plan
+import motion_primitives as motionp
 
 # Ensure Genesis is initialized before building scenes
 if len(sys.argv) > 1 and sys.argv[1] == "gpu":
@@ -35,8 +37,8 @@ else:
     )
     # Rename file
     Path("problem.pddl.soln").rename("actions.soln")
-
-
+#planner = plan.PlannerInterface(franka, scene)
+motion = motionp.MotionPrimitives(franka, scene, BlocksState)
 
 # set control gains
 # Note: the following values are tuned for achieving best behavior with Franka
@@ -50,62 +52,28 @@ franka.set_dofs_kv(
     np.array([450, 450, 350, 350, 200, 200, 200, 10, 10]),
 )
 franka.set_dofs_force_range(
-    np.array([-87, -87, -87, -87, -12, -12, -12, -100, -100]),
-    np.array([87, 87, 87, 87, 12, 12, 12, 100, 100]),
+    np.array([-60, -60, -60, -60, -10, -10, -10, -100, -100]),
+    np.array([60, 60, 60, 60, 10, 10, 10, 100, 100]),
 )
+# # move to a fixed pre-grasp pose
+# qpos = franka.inverse_kinematics(
+#     link=franka.get_link("hand"),
+#     pos=np.array([0.65, 0.0, 0.25]),
+#     quat=np.array([0, 1, 0, 0])
+# )
 
-# move to a fixed pre-grasp pose
-qpos = franka.inverse_kinematics(
-    link=franka.get_link("hand"),
-    pos=np.array([0.65, 0.0, 0.25]),
-    quat=np.array([0, 1, 0, 0]),
-)
-# gripper open pos
-qpos[-2:] = 0.04
-path = franka.plan_path(
-    qpos_goal=qpos,
-    num_waypoints=200,  # 2s duration
-)
-# execute the planned path
-for waypoint in path:
-    franka.control_dofs_position(waypoint)
-    scene.step()
+# # gripper open pos
+# qpos[-2:] = 0.04
+# path = franka.plan_path(
+#     qpos_goal=qpos,
+#     num_waypoints=200,  # 2s duration
+# )
+# # execute the planned path
+# for waypoint in path:
+#     franka.control_dofs_position(waypoint)
+#     scene.step()
 
+motion.runSolution("actions.soln")
 
-# CODE FROM PROJECT 0
-# allow robot to reach the last waypoint
-for i in range(100):
-    scene.step()
-
-# get the end-effector link
-end_effector = franka.get_link("hand")
-motors_dof = np.arange(7)
-fingers_dof = np.arange(7, 9)
-
-# reach
-qpos = franka.inverse_kinematics(
-    link=end_effector,
-    pos=np.array([0.65, 0.0, 0.130]),
-    quat=np.array([0, 1, 0, 0]),
-)
-franka.control_dofs_position(qpos[:-2], motors_dof)
-for i in range(100):
-    scene.step()
-
-
-# grasp
-franka.control_dofs_position(qpos[:-2], motors_dof)
-franka.control_dofs_force(np.array([-0.5, -0.5]), fingers_dof)
-
-for i in range(100):
-    scene.step()
-
-# lift
-qpos = franka.inverse_kinematics(
-    link=end_effector,
-    pos=np.array([0.65, 0.0, 0.28]),
-    quat=np.array([0, 1, 0, 0]),
-)
-franka.control_dofs_position(qpos[:-2], motors_dof)
-for i in range(200):
-    scene.step()
+#motion.unstack("b")
+#motion.stack("y","r")
