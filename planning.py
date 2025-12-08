@@ -93,7 +93,7 @@ class PlannerInterface:
         ########## validate ##########
         try:
             from ompl import base as ob
-            from ompl import geometric as og
+            #from ompl import geometric as og
             from ompl import util as ou
 
             ou.setLogLevel(ou.LOG_ERROR)
@@ -108,10 +108,9 @@ class PlannerInterface:
             "RRTConnect",
             "RRTstar",
             "EST",
-            "FMT",
-            "BITstar",
-            "ABITstar",
-        ]
+            "FMT",]
+        import ompl
+        #from ompl import geometric as og
         if planner not in supported_planners:
             gs.raise_exception(f"Planner {planner} is not supported. Supported planners: {supported_planners}.")
 
@@ -146,12 +145,12 @@ class PlannerInterface:
             bounds.setLow(i_q, float(q_limit_lower[i_q]))
             bounds.setHigh(i_q, float(q_limit_upper[i_q]))
         space.setBounds(bounds)
-        ss = og.SimpleSetup(space)
+        ss = ompl.geometric.SimpleSetup(space)
 
         self.attached_object = attached_object
         
         ss.setStateValidityChecker(ob.StateValidityCheckerFn(self._is_ompl_state_valid))
-        ss.setPlanner(getattr(og, planner)(ss.getSpaceInformation()))
+        ss.setPlanner(getattr(ompl.geometric, planner)(ss.getSpaceInformation()))
 
         state_start = ob.State(space)
         state_goal = ob.State(space)

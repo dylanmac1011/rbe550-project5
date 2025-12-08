@@ -12,7 +12,7 @@ else:
     gs.init(backend=gs.cpu, logging_level='Warning', logger_verbose_time=False)
 
 # build the scene using the factory
-scene, franka, BlocksState = create_scene_6blocks()
+scene, franka, BlocksState = create_scene_stacked()
 #planner = plan.PlannerInterface(franka, scene)
 motion = motionp.MotionPrimitives(franka, scene, BlocksState)
 #scene, franka, BlocksState = create_scene_stacked()
@@ -29,10 +29,9 @@ franka.set_dofs_kv(
     np.array([450, 450, 350, 350, 200, 200, 200, 10, 10]),
 )
 franka.set_dofs_force_range(
-    np.array([-87, -87, -87, -87, -12, -12, -12, -100, -100]),
-    np.array([87, 87, 87, 87, 12, 12, 12, 100, 100]),
+    np.array([-60, -60, -60, -60, -10, -10, -10, -100, -100]),
+    np.array([60, 60, 60, 60, 10, 10, 10, 100, 100]),
 )
-
 # # move to a fixed pre-grasp pose
 # qpos = franka.inverse_kinematics(
 #     link=franka.get_link("hand"),
@@ -51,13 +50,7 @@ franka.set_dofs_force_range(
 #     franka.control_dofs_position(waypoint)
 #     scene.step()
 
-motion.stack("r", "g")
-motion.stack("b", "r")
-motion.stack("y", "b")
-motion.stack("m", "y")
-motion.stack("c", "m")
-motion.stack("d", "c")
-
+motion.runSolution("actions.soln")
 
 #motion.unstack("b")
 #motion.stack("y","r")
