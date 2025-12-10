@@ -9,6 +9,7 @@
             (unused ?x - block)
             
             ; Slot X is "__" of slot Y
+            ; These are STATIC and should NEVER change
             (east ?x - slot ?y - slot)
             (north ?x - slot ?y - slot)
             (northeast ?x - slot ?y - slot)
