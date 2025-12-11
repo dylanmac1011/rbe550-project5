@@ -1,14 +1,15 @@
 import sys
 import numpy as np
 import genesis as gs
-from scenes import create_scene_6blocks, create_scene_stacked
+from scenes import create_scene_6blocks, create_scene_stacked, create_scene_special_1, create_scene_special_2
 from symbolic_abstraction import generate_pddl
 import pyperplan
 import subprocess
 from pathlib import Path
 
 
-"""
+
+
 # Ensure Genesis is initialized before building scenes
 if len(sys.argv) > 1 and sys.argv[1] == "gpu":
     gs.init(backend=gs.gpu, logging_level='Warning', logger_verbose_time=False)
@@ -17,12 +18,18 @@ else:
 
 # build the scene using the factory
 # scene, franka, BlocksState = create_scene_6blocks()
-scene, franka, BlocksState = create_scene_stacked()
+# scene, franka, BlocksState = create_scene_stacked()
+scene, franka, BlocksState, SlotsState = create_scene_special_1()
+# scene, franka, BlocksState, SlotsState = create_scene_special_2()
+
+
+
 
 # Symbolically abstract scene to formulate pddl problem (generates .pddl file after call)
-generate_pddl(scene, franka, BlocksState)
+generate_pddl(scene, franka, BlocksState, SlotsState)
+
 """
-# Check if pddl was properly generated, otherwise, throw an error
+# Check if pddl was proper ly generated, otherwise, throw an error
 pddl_problem = Path("problem.pddl")
 if not pddl_problem.exists():
     raise FileNotFoundError(f"The file {pddl_problem} does not exist.")
@@ -35,14 +42,14 @@ else:
     )
     # Rename file
     Path("problem.pddl.soln").rename("actions.soln")
-
+"""
 
 
 # set control gains
 # Note: the following values are tuned for achieving best behavior with Franka
 # Typically, each new robot would have a different set of parameters.
 # Sometimes high-quality URDF or XML file would also provide this and will be parsed.
-"""
+
 franka.set_dofs_kp(
     np.array([4500, 4500, 3500, 3500, 2000, 2000, 2000, 100, 100]),
 )
@@ -109,4 +116,4 @@ qpos = franka.inverse_kinematics(
 franka.control_dofs_position(qpos[:-2], motors_dof)
 for i in range(200):
     scene.step()
-"""
+

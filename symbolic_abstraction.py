@@ -3,21 +3,27 @@ from robot_adapter import RobotAdapter
 from scipy.spatial.transform import Rotation as R
 
 
-# TODO: Check if tolerances are reasonable
-
-
-def generate_pddl(scene, franka, BlocksState):
+def generate_pddl(scene, franka, BlocksState, SlotsState):
     """Generate a pddl file based on provided scene."""
 
-    # Get all blocks in single string, separated by a space (objects for pddl file)
+    # Get all blocks in single string, separated by a space 
     blocks = " ".join(BlocksState.keys())
 
-    # Define all initial conditions of predicates
+    # Get all slots in a single string, separated by a space
+    slots = " ".join(SlotsState.keys())
+
+    # Define all initial conditions of predicates (OG)
     hand_empty =  ""
     holding = ""
     clear = ""
     on_table = ""
     on = ""
+
+    # Define new predicates for slots and blocks
+    slot_empty = ""
+    slot_occupied = ""
+    block_unused = "" 
+    block_used = ""
 
     # Get pose of franka's end effector
     end_effector = franka.get_link("hand")
@@ -111,13 +117,36 @@ def generate_pddl(scene, franka, BlocksState):
         if key not in bottom_blocks:
             clear += "(clear " + key + ") "
 
+    # SLOTOCCUPIED(S) - checks if a slot is occupied (checks if a block has same location)
+    # BLOCKUSED(B,S) - checks if a block is used (in a slot)
+    # SLOTEMPTY(S) - checks if a slot is empty (no block at that location)
+    for key_slot, slot in SlotsState.items():
+        empty = True
+        for key_block, block in BlocksState.items():
+            if np.allclose(slot, block.get_pos(), atol=0.001):
+                slot_occupied += "(slotoccupied " + key_slot + ") "
+                block_used += "(blockused " + key_block + " " + key_slot + ") "
+                empty = False
+        if empty:
+            slot_empty += "(slotempty " + key_slot + ") "
+
+    # BLOCKUNUSED(B) - checks if a block is unused (not in a slot)
+    for key_block, block in BlocksState.items():
+        unused = True
+        for key_slot, slot in SlotsState.items():
+            if np.allclose(slot, block.get_pos(), atol=0.001):
+                unused = False
+        if unused:
+            block_unused += "(blockunused " + key_block + ") "
+            
+        
 
     # Create the pddl file (can be treated as txt file)
     with open("problem.pddl", "w") as f:
         f.write("(define (problem BLOCKS PROBLEM)\n")
         f.write("(:domain BLOCKS)\n")
         f.write("(:objects " + blocks + " - block)\n")
-        f.write("(:INIT " + on_table + on + clear + hand_empty + holding + ")\n")
+        f.write("(:INIT " + on_table + on + clear + holding + slot_occupied + slot_empty + block_used + block_unused + hand_empty + ")\n")
         # TODO: Adjust goal
         f.write("(:goal (AND (on g b) (on r g) (on m c) (on y m)))\n)")
         # f.write("(:goal (AND (on r g) (on b r) (on y b) (on m y)))\n)")
