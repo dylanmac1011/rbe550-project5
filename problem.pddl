@@ -1,6 +1,6 @@
 (define (problem BLOCKS PROBLEM)
 (:domain BLOCKS)
 (:objects r g b y m c - block)
-(:INIT (ontable r) (ontable g) (ontable b) (ontable y) (ontable m) (ontable c) (clear r) (clear g) (clear b) (clear y) (clear m) (clear c) (slotoccupied 1) (slotempty 2) (slotempty 3) (slotempty 4) (slotempty 5) (slotempty 6) (blockused r 1) (blockunused g) (blockunused b) (blockunused y) (blockunused m) (blockunused c) (handempty))
+(:INIT (ontable r) (ontable g) (ontable b) (ontable y) (ontable m) (ontable c) (clear r) (clear g) (clear b) (clear y) (clear m) (clear c) (empty 1) (empty 2) (empty 3) (empty 4) (empty 5) (empty 6) (unused r) (unused g) (unused b) (unused y) (unused m) (unused c) (gridempty) (handempty))
 (:goal (AND (on g b) (on r g) (on m c) (on y m)))
 )

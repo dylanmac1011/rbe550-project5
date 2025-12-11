@@ -24,6 +24,7 @@ def generate_pddl(scene, franka, BlocksState, SlotsState):
     slot_occupied = ""
     block_unused = "" 
     block_used = ""
+    grid_empty = ""
 
     # Get pose of franka's end effector
     end_effector = franka.get_link("hand")
@@ -120,15 +121,21 @@ def generate_pddl(scene, franka, BlocksState, SlotsState):
     # SLOTOCCUPIED(S) - checks if a slot is occupied (checks if a block has same location)
     # BLOCKUSED(B,S) - checks if a block is used (in a slot)
     # SLOTEMPTY(S) - checks if a slot is empty (no block at that location)
+    # GRIDEMPTY() - checks if the entire grid is empty
+    empty_count = 0
     for key_slot, slot in SlotsState.items():
         empty = True
         for key_block, block in BlocksState.items():
             if np.allclose(slot, block.get_pos(), atol=0.001):
-                slot_occupied += "(slotoccupied " + key_slot + ") "
-                block_used += "(blockused " + key_block + " " + key_slot + ") "
+                slot_occupied += "(filled " + key_slot + ") "
+                block_used += "(in " + key_block + " " + key_slot + ") "
                 empty = False
         if empty:
-            slot_empty += "(slotempty " + key_slot + ") "
+            slot_empty += "(empty " + key_slot + ") "
+            empty_count = empty_count + 1
+    
+    if empty_count == 6 or empty_count == 10:
+        grid_empty = "(gridempty) "
 
     # BLOCKUNUSED(B) - checks if a block is unused (not in a slot)
     for key_block, block in BlocksState.items():
@@ -137,16 +144,15 @@ def generate_pddl(scene, franka, BlocksState, SlotsState):
             if np.allclose(slot, block.get_pos(), atol=0.001):
                 unused = False
         if unused:
-            block_unused += "(blockunused " + key_block + ") "
-            
-        
+            block_unused += "(unused " + key_block + ") "
+
 
     # Create the pddl file (can be treated as txt file)
     with open("problem.pddl", "w") as f:
         f.write("(define (problem BLOCKS PROBLEM)\n")
         f.write("(:domain BLOCKS)\n")
         f.write("(:objects " + blocks + " - block)\n")
-        f.write("(:INIT " + on_table + on + clear + holding + slot_occupied + slot_empty + block_used + block_unused + hand_empty + ")\n")
+        f.write("(:INIT " + on_table + on + clear + holding + slot_occupied + slot_empty + block_used + block_unused + grid_empty + hand_empty + ")\n")
         # TODO: Adjust goal
         f.write("(:goal (AND (on g b) (on r g) (on m c) (on y m)))\n)")
         # f.write("(:goal (AND (on r g) (on b r) (on y b) (on m y)))\n)")

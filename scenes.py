@@ -166,8 +166,8 @@ def create_scene_special_1() -> Tuple[Any, Any, Dict[str, Any],  Dict[str, Any]]
     # add some random noise up to 5 cm in x/y
 
     # Define random position for blocks
-    posR = ((0.65, 0.0, 0.02))
-    #posR = _rand_xy((0.65, 0.0, 0.02))
+    # posR = ((0.65, 0.0, 0.02))
+    posR = _rand_xy((0.65, 0.0, 0.02))
     posG = _rand_xy((0.65, 0.2, 0.02))
     posB = _rand_xy((0.65, 0.4, 0.02))
     posY = _rand_xy((0.45, 0.0, 0.02))
@@ -202,8 +202,8 @@ def create_scene_special_1() -> Tuple[Any, Any, Dict[str, Any],  Dict[str, Any]]
 
     # Define position of slots
     # Define all slots based on random first position
-    slot1_pos = ((0.65, 0.0, 0.02))
-    #slot1_pos = _rand_xy((0.45, -0.25, 0.02))
+    # slot1_pos = ((0.65, 0.0, 0.02))
+    slot1_pos = _rand_xy((0.45, -0.25, 0.02))
     slot2_pos = add(slot1_pos, (0.04, 0.0, 0.0))
     slot3_pos = add(slot1_pos, (0.0, 0.04, 0.0))
     slot4_pos = add(slot2_pos, (0.04, 0.04, 0.0))
