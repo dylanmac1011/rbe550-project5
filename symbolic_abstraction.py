@@ -26,6 +26,11 @@ def generate_pddl(scene, franka, BlocksState, SlotsState):
     block_used = ""
     grid_empty = ""
 
+    # Define goal
+    filled = ""
+    for key_slot, slot in SlotsState.items():
+        filled = filled + "(filled " + key_slot + ") "
+
     # Get pose of franka's end effector
     end_effector = franka.get_link("hand")
     ee_pos = end_effector.get_pos()
@@ -82,7 +87,8 @@ def generate_pddl(scene, franka, BlocksState, SlotsState):
     for key, block in BlocksState.items():
         block_pos = block.get_pos()
         if abs(block_pos[2] - 0.02) < 0.001:
-            on_table += "(ontable " + key + ") "
+            # FIXME: REMOVE ONTABLE FOR NOW
+            #on_table += "(ontable " + key + ") "
             on_table_bools[i] = True
         i += 1
 
@@ -116,7 +122,8 @@ def generate_pddl(scene, franka, BlocksState, SlotsState):
     bottom_blocks = [on[index] for index in bottom_blocks_indices]
     for key, block in BlocksState.items():
         if key not in bottom_blocks:
-            clear += "(clear " + key + ") "
+            # clear += "(clear " + key + ") "
+            holder = 1
 
     # SLOTOCCUPIED(S) - checks if a slot is occupied (checks if a block has same location)
     # BLOCKUSED(B,S) - checks if a block is used (in a slot)
@@ -146,15 +153,20 @@ def generate_pddl(scene, franka, BlocksState, SlotsState):
         if unused:
             block_unused += "(unused " + key_block + ") "
 
+    # Read text file for specific task
+    with open("Init_1.txt", "r", encoding="utf-8") as file:
+        content = file.read()
+    with open("Init_2.txt", "r", encoding="utf-8") as file:
+        content = file.read()
 
     # Create the pddl file (can be treated as txt file)
     with open("problem.pddl", "w") as f:
-        f.write("(define (problem BLOCKS PROBLEM)\n")
-        f.write("(:domain BLOCKS)\n")
-        f.write("(:objects " + blocks + " - block)\n")
-        f.write("(:INIT " + on_table + on + clear + holding + slot_occupied + slot_empty + block_used + block_unused + grid_empty + hand_empty + ")\n")
+        f.write("(define (problem BLOCKSPROBLEM)\n")
+        f.write("(:domain BLOCKS2)\n")
+        f.write("(:objects " + blocks + " - block \n" + slots + " - slot)\n")
+        f.write("(:init " + on_table + on + clear + holding + slot_occupied + slot_empty + block_used + block_unused + grid_empty + hand_empty + "\n" + content + ")\n")
         # TODO: Adjust goal
-        f.write("(:goal (AND (on g b) (on r g) (on m c) (on y m)))\n)")
+        f.write("(:goal (AND " + filled + "))\n")
         # f.write("(:goal (AND (on r g) (on b r) (on y b) (on m y)))\n)")
 
 

@@ -41,7 +41,7 @@ def _rand_xy(base, noise=0.05):
 def add(pos, delta):
     return tuple(a + b for a, b in zip(pos, delta))
 
-def create_scene_6blocks() -> Tuple[Any, Any, Dict[str, Any], Any]:
+def create_scene_6blocks() -> Tuple[Any, Any, Dict[str, Any], Dict[str, Any]]:
     """Create the default demo scene (layout 1).
 
     Returns:
@@ -104,7 +104,7 @@ def create_scene_6blocks() -> Tuple[Any, Any, Dict[str, Any], Any]:
     return scene, franka, blocks_state
 
 
-def create_scene_stacked() -> Tuple[Any, Any, Dict[str, Any], Any]:
+def create_scene_stacked() -> Tuple[Any, Any, Dict[str, Any], Dict[str, Any]]:
     """Create an alternative demo scene (layout 2) with cube positions. one on top of the other."""
     scene = _build_base_scene(camera_pos=(2.5, -1.2, 1.2), camera_lookat=(0.6, 0.0, 0.2))
 

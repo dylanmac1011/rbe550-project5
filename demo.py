@@ -19,10 +19,8 @@ else:
 # build the scene using the factory
 # scene, franka, BlocksState = create_scene_6blocks()
 # scene, franka, BlocksState = create_scene_stacked()
-scene, franka, BlocksState, SlotsState = create_scene_special_1()
-# scene, franka, BlocksState, SlotsState = create_scene_special_2()
-
-
+# scene, franka, BlocksState, SlotsState = create_scene_special_1()
+scene, franka, BlocksState, SlotsState = create_scene_special_2()
 
 
 # Symbolically abstract scene to formulate pddl problem (generates .pddl file after call)
