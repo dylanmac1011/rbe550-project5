@@ -39,33 +39,35 @@ def generate_pddl(scene, franka, BlocksState):
                 # Note: Z offset required between EE and block of roughly 0.11
                 if abs(ee_pos[2] - block_pos[2]) - 0.11 < 0.01:
                     valid_pos = True
-        # Check if orientations are valid for holding (only if positions are valid)
+        # # Check if orientations are valid for holding (only if positions are valid)
+        # if (valid_pos):
+        #     # Get orientations
+        #     block_quat = block.get_quat()
+        #     block_R = R.from_quat(block_quat)
+        #     block_roll, block_pitch, block_yaw = block_R.as_euler('xyz', degrees=False)
+        #     # Check z rotated by 180 degrees (EE pointing down at block) & normalize
+        #     delta_yaw = (ee_yaw - block_yaw + np.pi) % (2*np.pi) - np.pi
+        #     if abs(delta_yaw - np.pi) < 0.1:
+        #         valid_quat = True
+        # # Check if gripping if pose deemed valid using contact forces
         if (valid_pos):
-            # Get orientations
-            block_quat = block.get_quat()
-            block_R = R.from_quat(block_quat)
-            block_roll, block_pitch, block_yaw = block_R.as_euler('xyz', degrees=False)
-            # Check z rotated by 180 degrees (EE pointing down at block) & normalize
-            delta_yaw = (ee_yaw - block_yaw + np.pi) % (2*np.pi) - np.pi
-            if abs(delta_yaw - np.pi) < 0.1:
-                valid_quat = True
-        # Check if gripping if pose deemed valid using contact forces
-        if (valid_pos and valid_quat):
             print("checking collision")
             # TODO: Consider moving depending on how expensive this collision check is
             # Positions of grippers
             if (abs((franka.get_qpos())[-1]) - 0.02 < 0.005 and abs((franka.get_qpos())[-2]) - 0.02 < 0.005):
                 valid_grip = True
             # Add initial condition if valid grip
-            if valid_grip:
+        if valid_grip:
                 # TODO: note dangling space
-                holding = "(holding " + key + ")"
+            holding = "(holding " + key + ")"
+            print(holding)
                 # Break loop since can only be holding one block at a time
-                break
+            break
     
 
     # HANDEMPTY() - if not holding any blocks -> hand is empty
     if holding == "":
+        print("hand empty")
         hand_empty += "(handempty)"
 
     # ONTABLE(A) - Check if blocks are on table based on z coordinate
@@ -101,7 +103,7 @@ def generate_pddl(scene, franka, BlocksState):
                                 break
                 k +=1
         j += 1
-    
+    print(on)
     # CLEAR(A) - check if a block has no blocks on top of it 
     # Check for all blocks that do not appear in the bottom position in "ON(A,B)"
     # Use logic that the bottom block always appears right before ")"
@@ -119,8 +121,8 @@ def generate_pddl(scene, franka, BlocksState):
         f.write("(:objects " + blocks + " - block)\n")
         f.write("(:INIT " + on_table + on + clear + hand_empty + holding + ")\n")
         # TODO: Adjust goal
-        f.write("(:goal (AND (on g b) (on r g) (on m c) (on y m)))\n)")
-        # f.write("(:goal (AND (on r g) (on b r) (on y b) (on m y)))\n)")
+        f.write("(:goal (AND (on g b) (on r g) (on c m) (on y c)))\n)")
+        #f.write("(:goal (AND (on r g) (on b r) (on y b) (on m y)))\n)")
 
 
 
