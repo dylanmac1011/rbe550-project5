@@ -250,7 +250,7 @@ def create_scene_special_1() -> Tuple[Any, Any, Dict[str, Any],  Dict[str, Any]]
 
     blocks_state: Dict[str, Any] = {"r": cubeR, "g": cubeG, "b": cubeB, "y": cubeY, "m": cubeM, "c": cubeC}
 
-    slots_state: Dict[str, Any] = {"1": slot1_pos, "2": slot2_pos, "3": slot3_pos, "4": slot4_pos, "5": slot5_pos, "6": slot6_pos}
+    slots_state: Dict[str, Any] = {"s1": slot1_pos, "s3": slot2_pos, "s2": slot3_pos, "s4": slot4_pos, "s5": slot5_pos, "s6": slot6_pos}
 
     return scene, franka, blocks_state, slots_state
 
@@ -397,7 +397,7 @@ def create_scene_special_2() -> Tuple[Any, Any, Dict[str, Any],  Dict[str, Any]]
     blocks_state: Dict[str, Any] = {"r": cubeR, "g": cubeG, "b": cubeB, "y": cubeY, "m": cubeM, "c": cubeC,
                                     "o": cubeO, "w": cubeW, "br": cubeBr, "p": cubeP}
 
-    slots_state: Dict[str, Any] = {"11": slot11_pos, "12": slot12_pos, "13": slot13_pos, "14": slot14_pos, "15": slot15_pos, "16": slot16_pos,
-                                   "21": slot21_pos, "22": slot22_pos, "23": slot23_pos, "31": slot31_pos}
+    slots_state: Dict[str, Any] = {"s3": slot11_pos, "s5": slot12_pos, "s2": slot13_pos, "s4": slot14_pos, "s6": slot15_pos, "s1": slot16_pos,
+                                   "s8": slot21_pos, "s9": slot22_pos, "s7": slot23_pos, "s10": slot31_pos}
 
     return scene, franka, blocks_state, slots_state

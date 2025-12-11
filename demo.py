@@ -8,8 +8,6 @@ import subprocess
 from pathlib import Path
 
 
-
-
 # Ensure Genesis is initialized before building scenes
 if len(sys.argv) > 1 and sys.argv[1] == "gpu":
     gs.init(backend=gs.gpu, logging_level='Warning', logger_verbose_time=False)
@@ -26,7 +24,7 @@ scene, franka, BlocksState, SlotsState = create_scene_special_2()
 # Symbolically abstract scene to formulate pddl problem (generates .pddl file after call)
 generate_pddl(scene, franka, BlocksState, SlotsState)
 
-"""
+
 # Check if pddl was proper ly generated, otherwise, throw an error
 pddl_problem = Path("problem.pddl")
 if not pddl_problem.exists():
@@ -35,12 +33,12 @@ else:
     pddl_domain = Path("custom_domain.pddl")
     # Save actions to .soln file
     subprocess.run([
-        "pyperplan", str(pddl_domain), str(pddl_problem)],
+        "pyperplan", "-s", "gbf", str(pddl_domain), str(pddl_problem)],
         check=True
     )
     # Rename file
     Path("problem.pddl.soln").rename("actions.soln")
-"""
+
 
 
 # set control gains

@@ -166,7 +166,7 @@ def generate_pddl(scene, franka, BlocksState, SlotsState):
         f.write("(:objects " + blocks + " - block \n" + slots + " - slot)\n")
         f.write("(:init " + on_table + on + clear + holding + slot_occupied + slot_empty + block_used + block_unused + grid_empty + hand_empty + "\n" + content + ")\n")
         # TODO: Adjust goal
-        f.write("(:goal (AND " + filled + "))\n")
+        f.write("(:goal (AND " + filled + ")))\n")
         # f.write("(:goal (AND (on r g) (on b r) (on y b) (on m y)))\n)")
 
 
