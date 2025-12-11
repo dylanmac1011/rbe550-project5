@@ -1,0 +1,2 @@
+(ontable s1) (ontable s2) (ontable s3) (ontable s4) (ontable s5) (ontable s6)
+(north s2 s1) (east s3 s1) (northeast s4 s3) (northeast s5 s2) (north s6 s4) (east s6 s5)

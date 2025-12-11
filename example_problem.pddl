@@ -12,7 +12,7 @@
     (empty s1) (empty s2) (empty s3) (empty s4) (empty s5) 
     (empty s6) (empty s7) (empty s8) (empty s9) (empty s10)
     
-    ; Define slot relations
+    ; Define slot relations - STATIC
         ; First layer
     (ontable s1) (ontable s2) (ontable s3) (ontable s4) (ontable s5) (ontable s6)
     (north s1 s2) (north s2 s3) (north s4 s5)
@@ -23,7 +23,7 @@
         ; Third layer
     (above s10 s8)
 
-    ; Define structure edges
+    ; Define structure edges - STATIC
     (no-north s1) (no-east s1) (no-west s1)
     (no-west s2)
     (no-south s3) (no-west s3)
