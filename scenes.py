@@ -104,6 +104,91 @@ def create_scene_6blocks() -> Tuple[Any, Any, Dict[str, Any], Dict[str, Any]]:
 
     return scene, franka, blocks_state
 
+def create_scene_10blocks() -> Tuple[Any, Any, Dict[str, Any], Dict[str, Any]]:
+    """Create the default demo scene (Bonus layout)
+
+    Returns:
+        scene, franka_adapter, blocks_state, end_effector
+    """
+    scene = _build_base_scene()
+
+    # basic geometry
+    plane = scene.add_entity(gs.morphs.Plane())
+    # add some random noise up to 5 cm in x/y
+
+    # TODO: Add back random position for red
+    posR = (0.65, 0.0, 0.02)
+    posG = _rand_xy((0.65, 0.2, 0.02))
+    posB = _rand_xy((0.65, 0.4, 0.02))
+    posY = _rand_xy((0.45, 0.0, 0.02))
+    posM = _rand_xy((0.45, 0.2, 0.02))
+    posC = _rand_xy((0.45, 0.4, 0.02))
+    posD = _rand_xy((0.45, 0.6, 0.02))
+    # Add 4 additional blocks for second and third layer
+    posO = _rand_xy((0.45, -0.2, 0.02))
+    posP = _rand_xy((0.45, -0.4, 0.02))
+    posBr = _rand_xy((0.65, -0.2, 0.02))
+    posW = _rand_xy((0.6, -0.37, 0.02))
+
+    cubeR = scene.add_entity(
+        gs.morphs.Box(size=(0.04, 0.04, 0.04), pos= posR),
+        surface=gs.options.surfaces.Plastic(color=(1.0, 0.0, 0.0)),
+    )
+    cubeG = scene.add_entity(
+        gs.morphs.Box(size=(0.04, 0.04, 0.04), pos= posG),
+        surface=gs.options.surfaces.Plastic(color=(0.0, 1.0, 0.0)),
+    )
+    cubeB = scene.add_entity(
+        gs.morphs.Box(size=(0.04, 0.04, 0.04), pos= posB),
+        surface=gs.options.surfaces.Plastic(color=(0.0, 0.0, 1.0)),
+    )
+    cubeY = scene.add_entity(
+        gs.morphs.Box(size=(0.04, 0.04, 0.04), pos=posY),
+        surface=gs.options.surfaces.Plastic(color=(1.0, 1.0, 0.0)),
+    )
+    cubeM = scene.add_entity(
+        gs.morphs.Box(size=(0.04, 0.04, 0.04), pos=posM),
+        surface=gs.options.surfaces.Plastic(color=(1.0, 0, 1.0)),
+    )
+
+    cubeC = scene.add_entity(
+        gs.morphs.Box(size=(0.04, 0.04, 0.04), pos=posC),
+        surface=gs.options.surfaces.Plastic(color=(0, 1.0, 1.0)),
+    )
+    cubeO = scene.add_entity(
+        gs.morphs.Box(size=(0.04, 0.04, 0.04), pos= posO),
+        surface=gs.options.surfaces.Plastic(color=(1.0, 0.647, 0.0)),
+    )
+    cubeP = scene.add_entity(
+        gs.morphs.Box(size=(0.04, 0.04, 0.04), pos= posP),
+        surface=gs.options.surfaces.Plastic(color=(1.0, 0.753, 0.796)),
+    )
+    cubeBr = scene.add_entity(
+        gs.morphs.Box(size=(0.04, 0.04, 0.04), pos= posBr),
+        surface=gs.options.surfaces.Plastic(color=(0.647, 0.165, 0.165)),
+    )
+    cubeW = scene.add_entity(
+        gs.morphs.Box(size=(0.04, 0.04, 0.04), pos= posW),
+        surface=gs.options.surfaces.Plastic(color=(1.0, 1.0, 1.0)),
+    )
+
+    franka_raw = scene.add_entity(gs.morphs.MJCF(file="xml/franka_emika_panda/panda.xml"))
+    franka = RobotAdapter(franka_raw, scene)
+
+    # build scene (construct physics/visuals)
+    scene.build()
+
+    # initial robot pose (7 arm joints + 2 gripper fingers)
+    franka.set_qpos(np.array([0.0, -0.5, -0.2, -1.0, 0.0, 1.00, 0.5, 0.02, 0.02]))
+
+    # slightly raise robot base to avoid initial collisions
+    _elevate_robot_base(franka)
+
+    blocks_state: Dict[str, Any] = {"r": cubeR, "g": cubeG, "b": cubeB, "y": cubeY, "m": cubeM, "c": cubeC,
+                                    "o": cubeO, "w": cubeW, "x": cubeBr, "p": cubeP}
+
+    return scene, franka, blocks_state
+
 
 def create_scene_stacked() -> Tuple[Any, Any, Dict[str, Any], Dict[str, Any]]:
     """Create an alternative demo scene (layout 2) with cube positions. one on top of the other."""
