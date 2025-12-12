@@ -7,6 +7,7 @@ import pyperplan
 import subprocess
 from pathlib import Path
 import motion_primitives as motionp
+from time import sleep
 
 
 # Ensure Genesis is initialized before building scenes
@@ -73,15 +74,21 @@ if not pddl_problem.exists():
 else:
     if goal_num == 1 or goal_num == 2 or goal_num == 3:
         pddl_domain = Path("domain.pddl")
+        # Run pyperplan with greedy best first search rather than bfs
+        subprocess.run([
+            "pyperplan", str(pddl_domain), str(pddl_problem)],
+            check=True
+        )
     else:
         pddl_domain = Path("custom_domain.pddl")
-    # Run pyperplan with greedy best first search rather than bfs
-    subprocess.run([
-        "pyperplan", "-s", "gbf", str(pddl_domain), str(pddl_problem)],
-        check=True
-    )
+        # Run pyperplan with greedy best first search rather than bfs
+        subprocess.run([
+            "pyperplan", "-s", "gbf", str(pddl_domain), str(pddl_problem)],
+            check=True
+        )
     # Save actions to .soln file & rename it 
     Path("problem.pddl.soln").rename("actions.soln")
+
 franka.set_dofs_kp(
     np.array([4500, 4500, 3500, 3500, 2000, 2000, 2000, 100, 100]),
 )
@@ -92,47 +99,43 @@ franka.set_dofs_force_range(
     np.array([-60, -60, -60, -60, -10, -10, -10, -100, -100]),
     np.array([60, 60, 60, 60, 10, 10, 10, 100, 100]),
 )
-# #move to a fixed pre-grasp pose
-# qpos = franka.inverse_kinematics(
-#     link=franka.get_link("hand"),
-#     pos=np.array([0.65, 0.0, 0.17]),
-#     quat=np.array([0, 1, 0, 0])
-# )
 
-# # gripper open pos
-# qpos[-2:] = 0.04
-# path = franka.plan_path(
-#     qpos_goal=qpos,
-#     num_waypoints=200,  # 2s duration
-# )
-# # execute the planned path
-# for waypoint in path:
-#     franka.control_dofs_position(waypoint)
-#     scene.step()
-#
-motion.runSolution("actions.soln")
-# finished = motion.runSolutionStep("actions.soln")
-# while not finished:#"actions.soln")):
-#     if goal_num == 1 or goal_num == 2 or goal_num == 3:
-#         generate_pddl(scene, franka, BlocksState, goal_num)
-#     else:
-#         generate_pddl_special(scene, franka, BlocksState, SlotsState, goal_num)
 
-#     # Check if pddl was properly generated, otherwise, throw an error
-#     pddl_problem = Path("problem.pddl")
-#     if not pddl_problem.exists():
-#         raise FileNotFoundError(f"The file {pddl_problem} does not exist.")
-#     else:
-#         if goal_num == 1 or goal_num == 2 or goal_num == 3:
-#             pddl_domain = Path("domain.pddl")
-#         else:
-#             pddl_domain = Path("custom_domain.pddl")
-#         # Run pyperplan with greedy best first search rather than bfs
-#         subprocess.run([
-#             "pyperplan", "-s", "gbf", str(pddl_domain), str(pddl_problem)],
-#             check=True
-#         )
-#         finished = motion.runSolutionStep("problem.pddl.soln")
-        # Rename file
-        
+while True:
+    with open("actions.soln", "r") as f:
+        content = f.read()
+        if not content:
+            print("The goal has been reached!")
+            break
+        else:
+            print("Re-ground predicates and re-planning")
+            motion.runSolution("actions.soln")
+            # Symbolically abstract scene to formulate pddl problem (generates .pddl file after call)
+            if goal_num == 1 or goal_num == 2 or goal_num == 3:
+                generate_pddl(scene, franka, BlocksState, goal_num)
+            else:
+                generate_pddl_special(scene, franka, BlocksState, SlotsState, goal_num)
+
+            # Check if pddl was properly generated, otherwise, throw an error
+            pddl_problem = Path("problem.pddl")
+            if not pddl_problem.exists():
+                raise FileNotFoundError(f"The file {pddl_problem} does not exist.")
+            else:
+                if goal_num == 1 or goal_num == 2 or goal_num == 3:
+                    pddl_domain = Path("domain.pddl")
+                    # Run pyperplan with bfs
+                    subprocess.run([
+                        "pyperplan", str(pddl_domain), str(pddl_problem)],
+                        check=True
+                    )
+                else:
+                    pddl_domain = Path("custom_domain.pddl")
+                    # Run pyperplan with greedy best first search rather than bfs
+                    subprocess.run([
+                        "pyperplan", "-s", "gbf", str(pddl_domain), str(pddl_problem)],
+                        check=True
+                    )
+                # Save actions to .soln file & rename it 
+                Path("problem.pddl.soln").rename("actions.soln")
+
 

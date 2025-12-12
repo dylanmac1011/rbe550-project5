@@ -440,16 +440,16 @@ class MotionPrimitives:
             with open(f_soln, 'r') as f:
                 current_line = f.readline()
                 print (current_line)
-                while current_line:
-                    for string in primitives:
-                            if string in current_line:
-                                self.primitiveFromString(string, current_line)
-                                break #only 1 primitive per line
-                    
-                    current_line = f.readline()
-                    #re-ground primitives
-                    #re-plan if necessary
-                    #call runSolution again with new .soln file
+                # CAL EDIT: Only executes first action and then immediately stops
+                #while current_line:
+                for string in primitives:
+                        if string in current_line:
+                            self.primitiveFromString(string, current_line)
+                            break #only 1 primitive per line
+                #current_line = f.readline()
+                #re-ground primitives
+                #re-plan if necessary
+                #call runSolution again with new .soln file
         except FileNotFoundError:
             print("Solution File Not Found")
 
