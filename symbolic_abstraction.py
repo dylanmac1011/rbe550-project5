@@ -119,7 +119,7 @@ def generate_pddl(scene, franka, BlocksState, goal_num):
         elif goal_num == 2:
             f.write("(:goal (AND (on r g) (on b r) (on y b) (on m y)))\n)")
         else:
-            f.write("(:goal (AND (on r g) (on b r) (on y b) (on m y) (on x m) (on p x) (on w p) (on o w)))\n)")
+            f.write("(:goal (AND (on r g) (on b r) (on y b) (on m y) (on p m) (on o p)))\n)")
 
 
 
