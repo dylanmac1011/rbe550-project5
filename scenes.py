@@ -401,7 +401,7 @@ def create_scene_special_2() -> Tuple[Any, Any, Dict[str, Any],  Dict[str, Any]]
     _elevate_robot_base(franka)
 
     blocks_state: Dict[str, Any] = {"r": cubeR, "g": cubeG, "b": cubeB, "y": cubeY, "m": cubeM, "c": cubeC,
-                                    "o": cubeO, "w": cubeW, "br": cubeBr, "p": cubeP}
+                                    "o": cubeO, "w": cubeW, "x": cubeBr, "p": cubeP}
 
     slots_state: Dict[str, Any] = {"s3": slot11_pos, "s5": slot12_pos, "s2": slot13_pos, "s4": slot14_pos, "s6": slot15_pos, "s1": slot16_pos,
                                    "s8": slot21_pos, "s9": slot22_pos, "s7": slot23_pos, "s10": slot31_pos}
