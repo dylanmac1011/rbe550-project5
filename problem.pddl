@@ -1,8 +1,8 @@
 (define (problem BLOCKSPROBLEM)
 (:domain BLOCKS2)
-(:objects r g b y m c o w br p - block 
+(:objects r g b y m c o w x p - block 
 s3 s5 s2 s4 s6 s1 s8 s9 s7 s10 - slot)
-(:init (empty s3) (empty s5) (empty s2) (empty s4) (empty s6) (empty s1) (empty s8) (empty s9) (empty s7) (empty s10) (unused r) (unused g) (unused b) (unused y) (unused m) (unused c) (unused o) (unused w) (unused br) (unused p) (gridempty) (handempty)
+(:init (empty s3) (empty s5) (empty s2) (empty s4) (empty s6) (empty s1) (empty s8) (empty s9) (empty s7) (empty s10) (unused r) (unused g) (unused b) (unused y) (unused m) (unused c) (unused o) (unused w) (unused x) (unused p) (gridempty) (handempty)
 ; Define slot relations
         ; First layer
     (ontable s1) (ontable s2) (ontable s3) (ontable s4) (ontable s5) (ontable s6)

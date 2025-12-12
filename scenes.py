@@ -275,7 +275,7 @@ def create_scene_special_2() -> Tuple[Any, Any, Dict[str, Any],  Dict[str, Any]]
     # Define random position for blocks
     posR = _rand_xy((0.65, 0.0, 0.02))
     posG = _rand_xy((0.65, 0.2, 0.02))
-    posB = _rand_xy((0.65, 0.4, 0.02))
+    posB = _rand_xy((0.65, 0.38, 0.02))
     posY = _rand_xy((0.45, 0.0, 0.02))
     posM = _rand_xy((0.45, 0.2, 0.02))
     posC = _rand_xy((0.45, 0.4, 0.02))
@@ -283,7 +283,7 @@ def create_scene_special_2() -> Tuple[Any, Any, Dict[str, Any],  Dict[str, Any]]
     posO = _rand_xy((0.45, -0.2, 0.02))
     posP = _rand_xy((0.45, -0.4, 0.02))
     posBr = _rand_xy((0.65, -0.2, 0.02))
-    posW = _rand_xy((0.65, -0.4, 0.02))
+    posW = _rand_xy((0.65, -0.38, 0.02))
 
     cubeR = scene.add_entity(
         gs.morphs.Box(size=(0.04, 0.04, 0.04), pos= posR),
@@ -401,7 +401,7 @@ def create_scene_special_2() -> Tuple[Any, Any, Dict[str, Any],  Dict[str, Any]]
     _elevate_robot_base(franka)
 
     blocks_state: Dict[str, Any] = {"r": cubeR, "g": cubeG, "b": cubeB, "y": cubeY, "m": cubeM, "c": cubeC,
-                                    "o": cubeO, "w": cubeW, "br": cubeBr, "p": cubeP}
+                                    "o": cubeO, "w": cubeW, "x": cubeBr, "p": cubeP}
 
     slots_state: Dict[str, Any] = {"s3": slot11_pos, "s5": slot12_pos, "s2": slot13_pos, "s4": slot14_pos, "s6": slot15_pos, "s1": slot16_pos,
                                    "s8": slot21_pos, "s9": slot22_pos, "s7": slot23_pos, "s10": slot31_pos}
