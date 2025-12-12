@@ -105,46 +105,47 @@ franka.set_dofs_force_range(
 motion = motionp.MotionPrimitives(franka, scene, BlocksState)
 
 ##  No re-planning
-# motion.runSolution('actions.soln')
-
-# With re-planning
-finished = False
-while not finished:
-    with open("actions.soln", "r") as f:
-        content = f.read()
-        if not content:
-            print("The goal has been reached!")
-            break
-        else:
-            print("Re-ground predicates and re-planning")
-            finished = motion.runSolutionStep("actions.soln")
-            motion.scene.step(50)
-            # Symbolically abstract scene to formulate pddl problem (generates .pddl file after call)
-            if goal_num == 1 or goal_num == 2 or goal_num == 3:
-                generate_pddl(scene, franka, BlocksState, goal_num)
+if (goal_num >= 3):
+    motion.runSolution('actions.soln')
+else:
+    # With re-planning
+    finished = False
+    while not finished:
+        with open("actions.soln", "r") as f:
+            content = f.read()
+            if not content:
+                print("The goal has been reached!")
+                break
             else:
-                generate_pddl_special(scene, franka, BlocksState, SlotsState, goal_num)
-
-            # Check if pddl was properly generated, otherwise, throw an error
-            pddl_problem = Path("problem.pddl")
-            if not pddl_problem.exists():
-                raise FileNotFoundError(f"The file {pddl_problem} does not exist.")
-            else:
+                print("Re-ground predicates and re-planning")
+                finished = motion.runSolutionStep("actions.soln")
+                motion.scene.step(50)
+                # Symbolically abstract scene to formulate pddl problem (generates .pddl file after call)
                 if goal_num == 1 or goal_num == 2 or goal_num == 3:
-                    pddl_domain = Path("domain.pddl")
-                    # Run pyperplan with bfs
-                    subprocess.run([
-                        "pyperplan", str(pddl_domain), str(pddl_problem)],
-                        check=True
-                    )
+                    generate_pddl(scene, franka, BlocksState, goal_num)
                 else:
-                    pddl_domain = Path("custom_domain.pddl")
-                    # Run pyperplan with greedy best first search rather than bfs
-                    subprocess.run([
-                        "pyperplan", "-s", "gbf", str(pddl_domain), str(pddl_problem)],
-                        check=True
-                    )
-                # Save actions to .soln file & rename it 
-                Path("problem.pddl.soln").rename("actions.soln")
+                    generate_pddl_special(scene, franka, BlocksState, SlotsState, goal_num)
+
+                # Check if pddl was properly generated, otherwise, throw an error
+                pddl_problem = Path("problem.pddl")
+                if not pddl_problem.exists():
+                    raise FileNotFoundError(f"The file {pddl_problem} does not exist.")
+                else:
+                    if goal_num == 1 or goal_num == 2 or goal_num == 3:
+                        pddl_domain = Path("domain.pddl")
+                        # Run pyperplan with bfs
+                        subprocess.run([
+                            "pyperplan", str(pddl_domain), str(pddl_problem)],
+                            check=True
+                        )
+                    else:
+                        pddl_domain = Path("custom_domain.pddl")
+                        # Run pyperplan with greedy best first search rather than bfs
+                        subprocess.run([
+                            "pyperplan", "-s", "gbf", str(pddl_domain), str(pddl_problem)],
+                            check=True
+                        )
+                    # Save actions to .soln file & rename it 
+                    Path("problem.pddl.soln").rename("actions.soln")
 
 
