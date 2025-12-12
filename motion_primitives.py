@@ -82,6 +82,18 @@ class MotionPrimitives:
                 pre_place_pos[0] += 0.047
             case "west":
                 pre_place_pos[0] -= 0.047
+            case "northeast":
+                pre_place_pos[0] += 0.047
+                pre_place_pos[1] += 0.047
+            case "northwest":
+                pre_place_pos[0] -= 0.047
+                pre_place_pos[1] += 0.047
+            case "southeast":
+                pre_place_pos[0] += 0.047
+                pre_place_pos[1] -= 0.047
+            case "southwest":
+                pre_place_pos[0] -= 0.047
+                pre_place_pos[1] -= 0.047
 
         pre_place_yaw = block_yaw + np.pi #Z axis rotated 180 degrees
         pre_place_R = R.from_euler('xyz', [block_roll, block_pitch, pre_place_yaw])
@@ -157,7 +169,7 @@ class MotionPrimitives:
         #self.follow_path(pregrasp_qpos)
         path = self.robot.plan_path(
         qpos_goal=pregrasp_qpos,
-        num_waypoints=50)  # 2s duration
+        num_waypoints=100)  # 2s duration
 
         print("following path")
         #Follow path to pre-grasp state
@@ -184,27 +196,27 @@ class MotionPrimitives:
 
     def put_down(self, block_str):
 
+        #self.moveTo()
         x_pos, y_pos, z_pos = self.generateValidState()
         #qpos_2, pos_2, quat = self.calcPreGraspPose(self.blocks[block_str])
         quat = np.array([0, 1, 0, 0])
         #Check if state is valid once OMPL works
         pos = np.array([x_pos,y_pos,z_pos])
-        print(len(pos))
-        print(pos)
         pre_place_qpos = self.robot.inverse_kinematics(
         link=self.robot.get_link("hand"),
-        pos=pos,
-        quat=quat)
+        pos=torch.tensor(pos),
+        quat=torch.tensor(quat))
 
         path = self.robot.plan_path(
         qpos_goal=pre_place_qpos,
-        num_waypoints=200)  # 2s duration
+        num_waypoints=50,
+        resolution=0.2)  # 2s duration
 
         print("following path")
         #Follow path to pre-grasp state
         for waypoint in path:
             self.moveStep(waypoint, gripper=False)
-        for i in range(100): #allow some time for robot to move to final position
+        for i in range(25): #allow some time for robot to move to final position
             self.scene.step()
 
         pos[2] -= 0.05
@@ -234,13 +246,13 @@ class MotionPrimitives:
 
         path = self.robot.plan_path(
         qpos_goal=pre_place_qpos,
-        num_waypoints=300)  # 2s duration
+        num_waypoints=200)  # 2s duration
 
         print("following path")
         #Follow path to pre-grasp state
         for waypoint in path:
             self.moveStep(waypoint, gripper=False)
-        for i in range(100): #allow some time for robot to move to final position
+        for i in range(25): #allow some time for robot to move to final position
             self.scene.step()
 
         pos[2] -= 0.05
@@ -273,13 +285,14 @@ class MotionPrimitives:
 
         path = self.robot.plan_path(
         qpos_goal=prestack_qpos,
-        num_waypoints=50)  # 2s duration
+        num_waypoints=200,
+        resolution=0.2)  # 2s duration
 
         print("following path")
         #Follow path to pre-grasp state
         for waypoint in path:
             self.moveStep(waypoint, gripper=False)
-        for i in range(100): #allow some time for robot to move to final position
+        for i in range(25): #allow some time for robot to move to final position
             self.scene.step()
    
         stack_qpos = self.robot.inverse_kinematics(
@@ -307,7 +320,8 @@ class MotionPrimitives:
 
         path = self.robot.plan_path(
         qpos_goal=preplace_qpos,
-        num_waypoints=300)  # 2s duration
+        num_waypoints=200,
+        resolution=0.2)  # 2s duration
 
         print("following path")
         #Follow path to pre-grasp state
@@ -392,12 +406,36 @@ class MotionPrimitives:
                 block2_index = index + 13
                 block2_str = line[block2_index]
                 self.place_direction(block1_str, block2_str, "east")
+            case "place-northeast":
+                block1_index = index + 16
+                block1_str = line[block1_index]
+                block2_index = index + 18
+                block2_str = line[block2_index]
+                self.place_direction(block1_str, block2_str, "northeast")
+            case "place-northwest":
+                block1_index = index + 16
+                block1_str = line[block1_index]
+                block2_index = index + 18
+                block2_str = line[block2_index]
+                self.place_direction(block1_str, block2_str, "northwest")
+            case "place-southeast":
+                block1_index = index + 16
+                block1_str = line[block1_index]
+                block2_index = index + 18
+                block2_str = line[block2_index]
+                self.place_direction(block1_str, block2_str, "southeast")
+            case "place-southwest":
+                block1_index = index + 16
+                block1_str = line[block1_index]
+                block2_index = index + 18
+                block2_str = line[block2_index]
+                self.place_direction(block1_str, block2_str, "southwest")
 
 
 
     def runSolution(self, f_soln):
         primitives = ["pick-up", "put-down", "unstack", "stack", "place-first", \
-        "place-west", "place-north", "place-east", "place-south", "place-above"]
+        "place-northeast", "place-northwest", "place-southeast", "place-southwest","place-west", "place-north", "place-east", "place-south", "place-above"]
         try:
             with open(f_soln, 'r') as f:
                 current_line = f.readline()
@@ -416,7 +454,8 @@ class MotionPrimitives:
             print("Solution File Not Found")
 
     def runSolutionStep(self, f_soln):
-        primitives = ["pick-up", "put-down", "unstack", "stack"]
+        primitives = ["pick-up", "put-down", "unstack", "stack", "place-first", \
+        "place-northeast", "place-northwest", "place-southeast", "place-southwest","place-west", "place-north", "place-east", "place-south", "place-above"]
         try:
             with open(f_soln, 'r') as f:
                 current_line = f.readline()
