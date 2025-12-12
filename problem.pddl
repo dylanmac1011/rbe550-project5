@@ -1,6 +1,6 @@
 (define (problem BLOCKSPROBLEM)
 (:domain BLOCKS)
 (:objects r g b y m c - block )
-(:init (ontable b) (ontable y) (ontable c) (on r g) (on g r) (on m c) (clear b) (clear y) (clear m) (handempty))
-(:goal (AND (on g b) (on r g) (on m c) (on y m)))
+(:init (ontable g) (ontable c) (on r g) (on b r) (on y b) (on m y) (clear m) (clear c) (handempty))
+(:goal (AND (on r g) (on b r) (on y b) (on m y)))
 )

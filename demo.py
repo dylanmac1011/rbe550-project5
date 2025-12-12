@@ -114,6 +114,7 @@ while not finished:
         else:
             print("Re-ground predicates and re-planning")
             finished = motion.runSolutionStep("actions.soln")
+            motion.scene.step(50)
             # Symbolically abstract scene to formulate pddl problem (generates .pddl file after call)
             if goal_num == 1 or goal_num == 2 or goal_num == 3:
                 generate_pddl(scene, franka, BlocksState, goal_num)

@@ -14,7 +14,7 @@
 
   (:action pick-up
 	     :parameters (?x - block)
-	     :precondition (and (clear ?x) (handempty))
+	     :precondition (and (clear ?x) (ontable ?x) (handempty))
 	     :effect
 	     (and (not (ontable ?x))
 		   (not (clear ?x))

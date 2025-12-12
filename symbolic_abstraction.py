@@ -37,17 +37,17 @@ def generate_pddl(scene, franka, BlocksState, goal_num):
                 if abs(ee_pos[2] - block_pos[2]) - 0.11 < 0.01:
                     valid_pos = True
         # Check if orientations are valid for holding (only if positions are valid)
-        if (valid_pos):
-            # Get orientations
-            block_quat = block.get_quat()
-            block_R = R.from_quat(block_quat)
-            block_roll, block_pitch, block_yaw = block_R.as_euler('xyz', degrees=False)
-            # Check z rotated by 180 degrees (EE pointing down at block) & normalize
-            delta_yaw = (ee_yaw - block_yaw + np.pi) % (2*np.pi) - np.pi
-            if abs(delta_yaw - np.pi) < 0.1:
-                valid_quat = True
+        # if (valid_pos):
+        #     # Get orientations
+        #     block_quat = block.get_quat()
+        #     block_R = R.from_quat(block_quat)
+        #     block_roll, block_pitch, block_yaw = block_R.as_euler('xyz', degrees=False)
+        #     # Check z rotated by 180 degrees (EE pointing down at block) & normalize
+        #     delta_yaw = (ee_yaw - block_yaw + np.pi) % (2*np.pi) - np.pi
+        #     if abs(delta_yaw - np.pi) < 0.1:
+        #         valid_quat = True
         # Check if gripping if pose deemed valid using contact forces
-        if (valid_pos and valid_quat):
+        if (valid_pos):
             print("checking collision")
             # TODO: Consider moving depending on how expensive this collision check is
             # Positions of grippers
@@ -91,7 +91,7 @@ def generate_pddl(scene, franka, BlocksState, goal_num):
                     if abs(top_pos[0] - bottom_pos[0]) < 0.01:
                         if abs(top_pos[1] - bottom_pos[1]) < 0.01:
                             # Note: Z offset required between blocks is 0.04
-                            if abs(top_pos[2] - bottom_pos[2]) - 0.04 < 0.005:
+                            if top_pos[2] - bottom_pos[2] - 0.04 < 0.005 and top_pos[2] - bottom_pos[2] - 0.04 > -0.005:
                                 on += "(on " + top_key + " " + bottom_key + ") "
                                 # Break since can only be on top of one block by definition
                                 break
