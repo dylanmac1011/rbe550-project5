@@ -55,6 +55,7 @@ class MotionPrimitives:
             z_adjust = 0.21
         print(f"block z: {pre_grasp_pos[2]}")
         pre_grasp_pos[2] = pre_grasp_pos[2] + z_adjust
+        pre_grasp_pos[0] = pre_grasp_pos[0] + 0.005
         print(f"pre_grasp z: {pre_grasp_pos[2]}")
         pre_grasp_yaw = block_yaw + np.pi #Z axis rotated 180 degrees
         pre_grasp_R = R.from_euler('xyz', [block_roll, block_pitch, pre_grasp_yaw])
@@ -169,7 +170,8 @@ class MotionPrimitives:
         #self.follow_path(pregrasp_qpos)
         path = self.robot.plan_path(
         qpos_goal=pregrasp_qpos,
-        num_waypoints=100)  # 2s duration
+        num_waypoints=200,
+        resolution=0.2)  # 2s duration
 
         print("following path")
         #Follow path to pre-grasp state
@@ -183,8 +185,19 @@ class MotionPrimitives:
         grasp_qpos = self.robot.inverse_kinematics(init_qpos=self.robot.get_qpos(), 
             link=self.robot.get_link("hand"), pos=grasp_pos, quat=pre_grasp_quat)
         print(f"grasp pos: {grasp_pos}")
+        path2 = self.robot.plan_path(
+        qpos_goal=grasp_qpos,
+        num_waypoints=50,
+        resolution=0.2)  # 2s duration
 
-        self.moveTo(grasp_qpos, gripper=True)
+        print("following path")
+        #Follow path to pre-grasp state
+        for waypoint in path2:
+            self.moveStep(waypoint)
+        for i in range(25): #allow some time for robot to move to final position
+            self.scene.step()
+
+        #self.moveTo(grasp_qpos, gripper=True)
         # close gripper
         self.grasp(grasp_qpos)
 
@@ -209,7 +222,7 @@ class MotionPrimitives:
 
         path = self.robot.plan_path(
         qpos_goal=pre_place_qpos,
-        num_waypoints=50,
+        num_waypoints=200,
         resolution=0.2)  # 2s duration
 
         print("following path")
@@ -224,7 +237,17 @@ class MotionPrimitives:
         link=self.robot.get_link("hand"),
         pos=pos,
         quat=quat)
-        self.moveTo(place_qpos)
+        path2 = self.robot.plan_path(
+        qpos_goal=place_qpos,
+        num_waypoints=50,
+        resolution=0.2)  # 2s duration
+
+        print("following path")
+        #Follow path to pre-grasp state
+        for waypoint in path2:
+            self.moveStep(waypoint)
+        for i in range(25): #allow some time for robot to move to final position
+            self.scene.step()
         self.ungrasp(place_qpos)
         pos[2] += 0.1
         post_place_qpos = self.robot.inverse_kinematics(
@@ -275,12 +298,12 @@ class MotionPrimitives:
         blockA = self.blocks[blockA_str]
         blockB = self.blocks[blockB_str]
         prestack_qpos, pre_stack_pos, pre_stack_quat = self.calcPreGraspPose(blockB, stacking=True)
-        pre_stack_quat[1] = 1
+        pre_stack_quat = np.array([0, 1, 0, 0])
         stack_pos = tensor_to_array(pre_stack_pos).copy()
         if shape:
             adjust = 0.0
         else:
-            adjust = 0.05
+            adjust = 0.04
         stack_pos[2] -= adjust
 
         path = self.robot.plan_path(
@@ -440,16 +463,16 @@ class MotionPrimitives:
             with open(f_soln, 'r') as f:
                 current_line = f.readline()
                 print (current_line)
-                # CAL EDIT: Only executes first action and then immediately stops
-                #while current_line:
-                for string in primitives:
-                        if string in current_line:
-                            self.primitiveFromString(string, current_line)
-                            break #only 1 primitive per line
-                #current_line = f.readline()
-                #re-ground primitives
-                #re-plan if necessary
-                #call runSolution again with new .soln file
+                while current_line:
+                    for string in primitives:
+                            if string in current_line:
+                                self.primitiveFromString(string, current_line)
+                                break #only 1 primitive per line
+                    
+                    current_line = f.readline()
+                    #re-ground primitives
+                    #re-plan if necessary
+                    #call runSolution again with new .soln file
         except FileNotFoundError:
             print("Solution File Not Found")
 

@@ -79,19 +79,23 @@ def generate_pddl(scene, franka, BlocksState, goal_num):
     # ON(A,B) - check if all blocks not on table are on another block
     j = 0
     for top_key, top_block in BlocksState.items():
-        if not on_table_bools[j]:
+        # Check if block not on the table
+        if on_table_bools[j] == False:
             top_pos = top_block.get_pos()
             k = 0
             for bottom_key, bottom_block in BlocksState.items():
-                if j != k:
+                # Don't compare block against itself
+                if (j != k):
                     bottom_pos = bottom_block.get_pos()
-                    if abs(top_pos[0] - bottom_pos[0]) < 0.01 and abs(top_pos[1] - bottom_pos[1]) < 0.01:
-                        if abs((top_pos[2] - bottom_pos[2]) - 0.04) < 0.005: 
-                            # Can't be on something if we are still holding
-                            if holding == "":
-                                on += f"(on {top_key} {bottom_key}) "
+                    # Check if "same" x and y, proper z offset (0.04)
+                    if abs(top_pos[0] - bottom_pos[0]) < 0.01:
+                        if abs(top_pos[1] - bottom_pos[1]) < 0.01:
+                            # Note: Z offset required between blocks is 0.04
+                            if abs(top_pos[2] - bottom_pos[2]) - 0.04 < 0.005:
+                                on += "(on " + top_key + " " + bottom_key + ") "
+                                # Break since can only be on top of one block by definition
                                 break
-                k += 1
+                k +=1
         j += 1
     
     # CLEAR(A) - check if a block has no blocks on top of it 
@@ -101,11 +105,8 @@ def generate_pddl(scene, franka, BlocksState, goal_num):
     bottom_blocks = [on[index] for index in bottom_blocks_indices]
     for key, block in BlocksState.items():
         if key not in bottom_blocks:
-            # NOT Clear if holding the block
-            if holding != "(holding " + key + ")":
-                clear += "(clear " + key + ") "
-                holder = 1
-
+            clear += "(clear " + key + ") "
+            holder = 1
 
     # Create the pddl file (can be treated as txt file)
     with open("problem.pddl", "w") as f:
@@ -290,7 +291,3 @@ def generate_pddl_special(scene, franka, BlocksState, SlotsState, goal_num):
         f.write("(:objects " + blocks + " - block \n" + slots + " - slot)\n")
         f.write("(:init " + on_table + on + clear + holding + slot_occupied + slot_empty + block_used + block_unused + grid_empty + hand_empty + "\n" + content + ")\n")
         f.write("(:goal (AND " + filled + ")))\n")
-
-
-
-

@@ -74,7 +74,7 @@ if not pddl_problem.exists():
 else:
     if goal_num == 1 or goal_num == 2 or goal_num == 3:
         pddl_domain = Path("domain.pddl")
-        # Run pyperplan with greedy best first search rather than bfs
+        # Run pyperplan with bfs
         subprocess.run([
             "pyperplan", str(pddl_domain), str(pddl_problem)],
             check=True
@@ -100,8 +100,12 @@ franka.set_dofs_force_range(
     np.array([60, 60, 60, 60, 10, 10, 10, 100, 100]),
 )
 
+# No re-planning
+# motion.runSolution('actions.soln')
 
-while True:
+# With re-planning
+finished = False
+while not finished:
     with open("actions.soln", "r") as f:
         content = f.read()
         if not content:
@@ -109,7 +113,7 @@ while True:
             break
         else:
             print("Re-ground predicates and re-planning")
-            motion.runSolution("actions.soln")
+            finished = motion.runSolutionStep("actions.soln")
             # Symbolically abstract scene to formulate pddl problem (generates .pddl file after call)
             if goal_num == 1 or goal_num == 2 or goal_num == 3:
                 generate_pddl(scene, franka, BlocksState, goal_num)
