@@ -9,4 +9,4 @@ Then pip install ompl-1.7.0-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86
 conda activate rbe550
 python run demo.py
 
-
+Note: After running demo.py you will be met with several prompts to dictate the desired goal (and scene if applicable). Follow the prompts and you should be all set!
