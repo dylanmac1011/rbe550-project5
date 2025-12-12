@@ -6,6 +6,7 @@ from symbolic_abstraction import generate_pddl, generate_pddl_special
 import pyperplan
 import subprocess
 from pathlib import Path
+import motion_primitives as motionp
 
 
 # Ensure Genesis is initialized before building scenes
@@ -32,7 +33,6 @@ if goal_num == 1 or goal_num == 2:
    print("Starting Scene #2: Stacked")
    scene_num = int(input("\nDesired starting scene number: "))
 
-
 # Create the desired scene using the factory
 # Continually ask for values for goal or scene until enter appropriate values 
 valid_goal = False
@@ -58,13 +58,13 @@ while not valid_goal:
     else:
         goal_num = int(input("Please enter a valid goal number (1-5): "))
 
+motion = motionp.MotionPrimitives(franka, scene, BlocksState)
 
 # Symbolically abstract scene to formulate pddl problem (generates .pddl file after call)
 if goal_num == 1 or goal_num == 2 or goal_num == 3:
     generate_pddl(scene, franka, BlocksState, goal_num)
 else:
     generate_pddl_special(scene, franka, BlocksState, SlotsState, goal_num)
-
 
 # Check if pddl was properly generated, otherwise, throw an error
 pddl_problem = Path("problem.pddl")
@@ -82,4 +82,59 @@ else:
     )
     # Save actions to .soln file & rename it 
     Path("problem.pddl.soln").rename("actions.soln")
+franka.set_dofs_kp(
+    np.array([4500, 4500, 3500, 3500, 2000, 2000, 2000, 100, 100]),
+)
+franka.set_dofs_kv(
+    np.array([450, 450, 350, 350, 200, 200, 200, 10, 10]),
+)
+franka.set_dofs_force_range(
+    np.array([-60, -60, -60, -60, -10, -10, -10, -100, -100]),
+    np.array([60, 60, 60, 60, 10, 10, 10, 100, 100]),
+)
+#move to a fixed pre-grasp pose
+qpos = franka.inverse_kinematics(
+    link=franka.get_link("hand"),
+    pos=np.array([0.65, 0.0, 0.17]),
+    quat=np.array([0, 1, 0, 0])
+)
+
+# gripper open pos
+qpos[-2:] = 0.04
+path = franka.plan_path(
+    qpos_goal=qpos,
+    num_waypoints=200,  # 2s duration
+)
+# execute the planned path
+for waypoint in path:
+    franka.control_dofs_position(waypoint)
+    scene.step()
+# generate_pddl(scene, franka, BlocksState, SlotsState)
+# # Check if pddl was properly generated, otherwise, throw an error
+# pddl_problem = Path("problem.pddl")
+# if not pddl_problem.exists():
+#     raise FileNotFoundError(f"The file {pddl_problem} does not exist.")
+# else:
+#     pddl_domain = Path("pyperplan/benchmarks/blocks/domain.pddl")
+#     # Save actions to .soln file
+#     subprocess.run([
+#         "pyperplan", str(pddl_domain), str(pddl_problem)],
+#         check=True)
+motion.runSolution("actions.soln")
+# while not finished:#"actions.soln")):
+#     generate_pddl(scene, franka, BlocksState)
+# # Check if pddl was properly generated, otherwise, throw an error
+#     pddl_problem = Path("problem.pddl")
+#     if not pddl_problem.exists():
+#         raise FileNotFoundError(f"The file {pddl_problem} does not exist.")
+#     else:
+#         pddl_domain = Path("pyperplan/benchmarks/blocks/domain.pddl")
+#         # Save actions to .soln file
+#         subprocess.run([
+#             "pyperplan", str(pddl_domain), str(pddl_problem)],
+#             check=True
+#         )
+#     finished = motion.runSolutionStep("problem.pddl.soln")
+#         # Rename file
+#         #Path("problem.pddl.soln").rename("actions.soln")
 
