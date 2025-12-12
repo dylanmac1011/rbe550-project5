@@ -2,6 +2,7 @@ import genesis as gs
 import numpy as np
 import torch
 from typing import Any
+import ompl
 
 from genesis.utils.misc import tensor_to_array
 from robot_adapter import RobotAdapter
@@ -44,10 +45,6 @@ class PlannerInterface:
         if collision_pairs.any() and len(collision_pairs) > 0:
             bad_links = set()
             for a, b in collision_pairs:
-                # print(self.scene.rigid_solver.geoms[a])
-                print(self.scene.rigid_solver.geoms[a].link.name)
-                # print(self.scene.rigid_solver.geoms[b])
-                print(self.scene.rigid_solver.geoms[b].link.name)
                 bad_links.add(self.scene.rigid_solver.geoms[a].link.name)
                 bad_links.add(self.scene.rigid_solver.geoms[b].link.name)
             gs.logger.warning(f"State causes collisions between links: {sorted(bad_links)}")
@@ -59,7 +56,6 @@ class PlannerInterface:
             timeout=5.0,
             smooth_path=True,
             num_waypoints=100,
-            attached_object=None,
             planner="RRTConnect",
     ):
         """
@@ -108,10 +104,7 @@ class PlannerInterface:
             "RRTConnect",
             "RRTstar",
             "EST",
-            "FMT",
-            "BITstar",
-            "ABITstar",
-        ]
+            "FMT",]
         if planner not in supported_planners:
             gs.raise_exception(f"Planner {planner} is not supported. Supported planners: {supported_planners}.")
 
@@ -146,12 +139,10 @@ class PlannerInterface:
             bounds.setLow(i_q, float(q_limit_lower[i_q]))
             bounds.setHigh(i_q, float(q_limit_upper[i_q]))
         space.setBounds(bounds)
-        ss = og.SimpleSetup(space)
-
-        self.attached_object = attached_object
+        ss = ompl.geometric.SimpleSetup(space)
         
         ss.setStateValidityChecker(ob.StateValidityCheckerFn(self._is_ompl_state_valid))
-        ss.setPlanner(getattr(og, planner)(ss.getSpaceInformation()))
+        ss.setPlanner(getattr(ompl.geometric, planner)(ss.getSpaceInformation()))
 
         state_start = ob.State(space)
         state_goal = ob.State(space)
@@ -204,13 +195,15 @@ class PlannerInterface:
 
         return waypoints
 
-    def _is_ompl_state_valid(self, state):
-        self.robot.set_qpos(self._ompl_state_to_tensor(state))
+    def _is_ompl_state_valid(self, state): 
+        qpos_cur = self.robot.get_qpos()
+        #self.robot.set_qpos(self._ompl_state_to_tensor(state))
         collision_pairs = self.robot.detect_collision()
+        self.robot.set_qpos(qpos_cur)
 
         if not len(collision_pairs):
             return True
-
+        print(f"attached: {self.attached_object}")
         if not self.attached_object:
             return False
 
@@ -222,7 +215,8 @@ class PlannerInterface:
             name_a = self.scene.rigid_solver.geoms[a].link.name
             name_b = self.scene.rigid_solver.geoms[b].link.name
             if (name_a in finger_names and b == self.attached_object.idx) or \
-                 (name_b in finger_names and a == self.attached_object.idx):
+                 (name_b in finger_names and a == self.attached_object.idx) or \
+                 (name_b in finger_names and name_a in finger_names):
                 continue
             return False
         return True
