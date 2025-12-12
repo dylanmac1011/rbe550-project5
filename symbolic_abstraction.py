@@ -121,8 +121,8 @@ def generate_pddl(scene, franka, BlocksState):
         f.write("(:objects " + blocks + " - block)\n")
         f.write("(:INIT " + on_table + on + clear + hand_empty + holding + ")\n")
         # TODO: Adjust goal
-        f.write("(:goal (AND (on g b) (on r g) (on c m) (on y c)))\n)")
-        #f.write("(:goal (AND (on r g) (on b r) (on y b) (on m y)))\n)")
+        #f.write("(:goal (AND (on g b) (on r g) (on c m) (on y c)))\n)")
+        f.write("(:goal (AND (on r g) (on b r) (on y b) (on m y)))\n)")
 
 
 

@@ -9,12 +9,12 @@ from genesis.utils.misc import tensor_to_array
 from scipy.spatial.transform import Rotation as R
 
 class MotionPrimitives:
-    def __init__(self, robot_: Any, scene_: Any, blocks_: Any, planner_: Any):
+    def __init__(self, robot_: Any, scene_: Any, blocks_: Any):
         # ensure we have a RobotAdapter so the rest of the code can rely on a
         # stable interface (but attribute access is forwarded to the raw robot)
         self.robot = robot_
-        planner._ensure_adapter(robot_, scene_)
-        self.planner = planner_
+        #planner._ensure_adapter(robot_, scene_)
+        #self.planner = planner_
         self.scene = scene_
         self.blocks = blocks_
     
@@ -77,16 +77,15 @@ class MotionPrimitives:
     def ungrasp(self, qpos):
         qpos[-2:] = 0.04
         self.robot.control_dofs_position(qpos, np.arange(9))
-        self.planner.attached_object = None 
+        #self.planner.attached_object = None 
         for i in range(100):
             self.scene.step()
 
     def follow_path(self, qpos, gripper=True):
-        path = self.planner.plan_path(
+        path = self.robot.plan_path(
         qpos_goal=qpos,
-        qpos_start=self.robot.get_qpos(),
         num_waypoints=200,
-        planner="RRTstar")  # 2s duration
+        planner="RRT") # 2s duration
 
         #Follow path to pre-grasp state
         print("following path")
@@ -125,17 +124,28 @@ class MotionPrimitives:
         #Calculate pre-grasp pose just above block
         pregrasp_qpos, pre_grasp_pos, pre_grasp_quat = self.calcPreGraspPose(block)
         pre_grasp_quat[1] = 1
+        grasp_pos = tensor_to_array(pre_grasp_pos).copy()
         #print(f"quat: {pre_grasp_quat}")
-        #print(f"pregrasp pos: {pre_grasp_pos}")
-        grasp_pos = np.array([pre_grasp_pos[0], pre_grasp_pos[1], pre_grasp_pos[2] - 0.05])
-        #print(f"grasp pos: {grasp_pos}")
-        self.follow_path(pregrasp_qpos)
-       # print(f"grasp pos: {grasp_pos}")
+        print(f"pregrasp pos: {pre_grasp_pos}")
+        #self.follow_path(pregrasp_qpos)
+        path = self.robot.plan_path(
+        qpos_goal=pregrasp_qpos,
+        num_waypoints=100)  # 2s duration
+
+        print("following path")
+        #Follow path to pre-grasp state
+        for waypoint in path:
+            self.moveStep(waypoint)
+        for i in range(100): #allow some time for robot to move to final position
+            self.scene.step()
+
+        
+        grasp_pos[2] -= 0.05
         grasp_qpos = self.robot.inverse_kinematics(init_qpos=self.robot.get_qpos(), 
             link=self.robot.get_link("hand"), pos=grasp_pos, quat=pre_grasp_quat)
-
+        print(f"grasp pos: {grasp_pos}")
         #move directly to grasp pose, no path planning needed
-        self.planner.attached_object = block
+        #self.planner.attached_object = block
         #print(f"attached_object:{self.planner.attached_object.idx}")
         self.moveTo(grasp_qpos, gripper=True)
         # close gripper
@@ -161,7 +171,16 @@ class MotionPrimitives:
         pos=pos,
         quat=quat)
 
-        self.follow_path(pre_place_qpos, gripper=False)
+        path = self.robot.plan_path(
+        qpos_goal=pre_place_qpos,
+        num_waypoints=100)  # 2s duration
+
+        print("following path")
+        #Follow path to pre-grasp state
+        for waypoint in path:
+            self.moveStep(waypoint, gripper=False)
+        for i in range(100): #allow some time for robot to move to final position
+            self.scene.step()
 
         pos[2] -= 0.05
         place_qpos = self.robot.inverse_kinematics(
@@ -170,7 +189,7 @@ class MotionPrimitives:
         quat=quat)
         self.moveTo(place_qpos)
         self.ungrasp(place_qpos)
-        pos[2] += 0.05
+        pos[2] += 0.1
         post_place_qpos = self.robot.inverse_kinematics(
         link=self.robot.get_link("hand"),
         pos=pos,
@@ -184,9 +203,29 @@ class MotionPrimitives:
         blockB = self.blocks[blockB_str]
         prestack_qpos, pre_stack_pos, pre_stack_quat = self.calcPreGraspPose(blockB, stacking=True)
         pre_stack_quat[1] = 1
-        stack_pos = np.array([pre_stack_pos[0], pre_stack_pos[1], pre_stack_pos[2] - 0.05])
-        self.follow_path(prestack_qpos, gripper=False)
+        stack_pos = tensor_to_array(pre_stack_pos).copy()
+        stack_pos[2] -= 0.05
 
+        path = self.robot.plan_path(
+        qpos_goal=prestack_qpos,
+        num_waypoints=100)  # 2s duration
+
+        print("following path")
+        #Follow path to pre-grasp state
+        for waypoint in path:
+            self.moveStep(waypoint, gripper=False)
+        for i in range(100): #allow some time for robot to move to final position
+            self.scene.step()
+        # path = self.planner.plan_path(
+        # qpos_goal=prestack_qpos,
+        # num_waypoints=200,
+        # planner="RRTstar")
+
+        # for waypoint in path:
+        #     self.moveStep(waypoint, gripper=False)
+        # for i in range(100): #allow some time for robot to move to final position
+        #     self.scene.step()
+       # print(f"grasp pos: {grasp_pos}")
         stack_qpos = self.robot.inverse_kinematics(
         link=self.robot.get_link("hand"),
         pos=stack_pos,
@@ -195,7 +234,7 @@ class MotionPrimitives:
         self.moveTo(stack_qpos, gripper=False)
         
         self.ungrasp(stack_qpos)
-        stack_pos[2] += 0.05
+        stack_pos[2] += 0.1
         post_stack_qpos = self.robot.inverse_kinematics(
         link=self.robot.get_link("hand"),
         pos=stack_pos,

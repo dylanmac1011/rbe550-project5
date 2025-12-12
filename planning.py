@@ -39,7 +39,7 @@ class PlannerInterface:
 
     def diagnose_valid_violation(self, state):
         # set robot to the candidate start and check collisions / joint violations
-        self.robot.set_qpos(self._ompl_state_to_tensor(state))
+        #self.robot.set_qpos(self._ompl_state_to_tensor(state))
         print(self.robot.get_qpos())
         collision_pairs = self.robot.detect_collision()
         if collision_pairs.any() and len(collision_pairs) > 0:
@@ -195,15 +195,12 @@ class PlannerInterface:
 
         return waypoints
 
-    def _is_ompl_state_valid(self, state): 
-        qpos_cur = self.robot.get_qpos()
-        #self.robot.set_qpos(self._ompl_state_to_tensor(state))
+    def _is_ompl_state_valid(self, state):     
+        self.robot.set_qpos(self._ompl_state_to_tensor(state))
         collision_pairs = self.robot.detect_collision()
-        self.robot.set_qpos(qpos_cur)
 
         if not len(collision_pairs):
             return True
-        print(f"attached: {self.attached_object}")
         if not self.attached_object:
             return False
 

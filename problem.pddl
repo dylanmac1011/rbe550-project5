@@ -2,5 +2,5 @@
 (:domain BLOCKS)
 (:objects r g b y m c - block)
 (:INIT (ontable r) (on g r) (on b g) (on y b) (on m y) (on c m) (clear c) (handempty))
-(:goal (AND (on g b) (on r g) (on c m) (on y c)))
+(:goal (AND (on r g) (on b r) (on y b) (on m y)))
 )
