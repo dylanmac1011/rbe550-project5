@@ -3,21 +3,33 @@ from robot_adapter import RobotAdapter
 from scipy.spatial.transform import Rotation as R
 
 
-# TODO: Check if tolerances are reasonable
-
-
-def generate_pddl(scene, franka, BlocksState):
+def generate_pddl(scene, franka, BlocksState, SlotsState):
     """Generate a pddl file based on provided scene."""
 
-    # Get all blocks in single string, separated by a space (objects for pddl file)
+    # Get all blocks in single string, separated by a space 
     blocks = " ".join(BlocksState.keys())
 
-    # Define all initial conditions of predicates
+    # Get all slots in a single string, separated by a space
+    slots = " ".join(SlotsState.keys())
+
+    # Define all initial conditions of predicates (OG)
     hand_empty =  ""
     holding = ""
     clear = ""
     on_table = ""
     on = ""
+
+    # Define new predicates for slots and blocks
+    slot_empty = ""
+    slot_occupied = ""
+    block_unused = "" 
+    block_used = ""
+    grid_empty = ""
+
+    # Define goal
+    filled = ""
+    for key_slot, slot in SlotsState.items():
+        filled = filled + "(filled " + key_slot + ") "
 
     # Get pose of franka's end effector
     end_effector = franka.get_link("hand")
@@ -77,7 +89,8 @@ def generate_pddl(scene, franka, BlocksState):
     for key, block in BlocksState.items():
         block_pos = block.get_pos()
         if abs(block_pos[2] - 0.02) < 0.001:
-            on_table += "(ontable " + key + ") "
+            # FIXME: REMOVE ONTABLE FOR NOW
+            #on_table += "(ontable " + key + ") "
             on_table_bools[i] = True
         i += 1
 
@@ -111,18 +124,52 @@ def generate_pddl(scene, franka, BlocksState):
     bottom_blocks = [on[index] for index in bottom_blocks_indices]
     for key, block in BlocksState.items():
         if key not in bottom_blocks:
-            clear += "(clear " + key + ") "
+            # clear += "(clear " + key + ") "
+            holder = 1
 
+    # SLOTOCCUPIED(S) - checks if a slot is occupied (checks if a block has same location)
+    # BLOCKUSED(B,S) - checks if a block is used (in a slot)
+    # SLOTEMPTY(S) - checks if a slot is empty (no block at that location)
+    # GRIDEMPTY() - checks if the entire grid is empty
+    empty_count = 0
+    for key_slot, slot in SlotsState.items():
+        empty = True
+        for key_block, block in BlocksState.items():
+            if np.allclose(slot, block.get_pos(), atol=0.001):
+                slot_occupied += "(filled " + key_slot + ") "
+                block_used += "(in " + key_block + " " + key_slot + ") "
+                empty = False
+        if empty:
+            slot_empty += "(empty " + key_slot + ") "
+            empty_count = empty_count + 1
+    
+    if empty_count == 6 or empty_count == 10:
+        grid_empty = "(gridempty) "
+
+    # BLOCKUNUSED(B) - checks if a block is unused (not in a slot)
+    for key_block, block in BlocksState.items():
+        unused = True
+        for key_slot, slot in SlotsState.items():
+            if np.allclose(slot, block.get_pos(), atol=0.001):
+                unused = False
+        if unused:
+            block_unused += "(unused " + key_block + ") "
+
+    # Read text file for specific task
+    with open("Init_1.txt", "r", encoding="utf-8") as file:
+        content = file.read()
+    with open("Init_2.txt", "r", encoding="utf-8") as file:
+        content = file.read()
 
     # Create the pddl file (can be treated as txt file)
     with open("problem.pddl", "w") as f:
-        f.write("(define (problem BLOCKS PROBLEM)\n")
-        f.write("(:domain BLOCKS)\n")
-        f.write("(:objects " + blocks + " - block)\n")
-        f.write("(:INIT " + on_table + on + clear + hand_empty + holding + ")\n")
+        f.write("(define (problem BLOCKSPROBLEM)\n")
+        f.write("(:domain BLOCKS2)\n")
+        f.write("(:objects " + blocks + " - block \n" + slots + " - slot)\n")
+        f.write("(:init " + on_table + on + clear + holding + slot_occupied + slot_empty + block_used + block_unused + grid_empty + hand_empty + "\n" + content + ")\n")
         # TODO: Adjust goal
-        #f.write("(:goal (AND (on g b) (on r g) (on c m) (on y c)))\n)")
-        f.write("(:goal (AND (on r g) (on b r) (on y b) (on m y)))\n)")
+        f.write("(:goal (AND " + filled + ")))\n")
+        # f.write("(:goal (AND (on r g) (on b r) (on y b) (on m y)))\n)")
 
 
 
